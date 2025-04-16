@@ -1,0 +1,11 @@
+<div class="exercise-list">
+  <h2>Exercise List</h2>
+
+  <!-- display exercises -->
+  @for (e of exercises(); track e.name) {
+    <app-exercise-item [data]="e" />
+  } @empty {
+  <p>No exercises added yet!</p>
+  }
+  <app-exercise-form/>
+</div>
