@@ -1,14 +1,19 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, NgZone, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-exercise-stop-watch',
   imports: [DatePipe],
   templateUrl: './exercise-stop-watch.component.html',
+  standalone: true,
   styleUrl: './exercise-stop-watch.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExerciseStopWatchComponent implements OnInit {
   private destroyRef = inject(DestroyRef)
+  private cdr = inject(ChangeDetectorRef)
+  private ngZone = inject(NgZone)
+
   elapsedTime = 0;
   isRunning = false;
   timerId: any;
@@ -26,13 +31,24 @@ export class ExerciseStopWatchComponent implements OnInit {
   //   console.log('ngOnDestroy called: Component destroyed');
   // }
 
+  get debugOutput() {
+    console.log('[ExerciseStopWatchComponent] generated!');
+    return ''
+  }
+
   startStopwatchHandler() {
     if (!this.isRunning) {
       this.isRunning = true;
-      this.timerId = setInterval(() => {
-        console.log('Elapsed time: ', this.elapsedTime / 1000);
-        this.elapsedTime += 1000;
-      }, 1000);
+      this.ngZone.runOutsideAngular(() =>{
+        this.timerId = setInterval(() => {
+          console.log('Elapsed time: ', this.elapsedTime / 1000);
+          this.elapsedTime += 1000;
+          this.ngZone.run(() => {
+            this.cdr.markForCheck()
+          })
+        }, 1000);
+      })
+
     }
 
     this.destroyRef.onDestroy(() => {
@@ -53,5 +69,5 @@ export class ExerciseStopWatchComponent implements OnInit {
     }
   }
 
-  
+
 }
